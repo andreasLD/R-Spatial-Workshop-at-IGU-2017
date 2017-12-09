@@ -65,11 +65,11 @@ setwd("~/Dropbox/Presentations/p_2017_08_R_workshop/michael/data/")
 states = st_read(
   dsn = "cb_2015_us_state_5m.shp", 
   stringsAsFactors = FALSE
-  )
+)
 tracks = st_read(
   dsn = "hurmjrl020.shp", 
   stringsAsFactors = FALSE
-  )
+)
 
 ## ------------------------------------------------------------------------
 dim(states)
@@ -94,13 +94,6 @@ plot(st_geometry(tracks), col = "red", add = TRUE)
 # mapview(tracks, zcol = "wind_mph", legend = TRUE)
 
 ## ------------------------------------------------------------------------
-nm = states[states$state == "New Mexico", ]
-
-## ------------------------------------------------------------------------
-plot(st_geometry(states))
-plot(st_geometry(nm), add = TRUE, border = NA, col = "red")
-
-## ------------------------------------------------------------------------
 tracks = tracks[tracks$year > 1949, ]
 
 ## ------------------------------------------------------------------------
@@ -119,11 +112,8 @@ class(area)
 
 ## ------------------------------------------------------------------------
 library(units)
-states$area_km2 = set_units(area, km^2)
-states$area_km2[1:3]
 
-## ------------------------------------------------------------------------
-states$area_km2 = as.numeric(states$area_km2)
+states$area_km2 = set_units(area, km^2)
 states$area_km2[1:3]
 
 ## ------------------------------------------------------------------------
@@ -163,14 +153,16 @@ class(tracks_int$geometry)
 ## ------------------------------------------------------------------------
 tracks_int$length = st_length(tracks_int)
 tracks_int$length = set_units(tracks_int$length, km) 
-tracks_int$length = as.numeric(tracks_int$length)
 
 ## ------------------------------------------------------------------------
-track_lengths = aggregate(
-  st_set_geometry(tracks_int[, c("length")], NULL),
-  st_set_geometry(tracks_int[, c("state")], NULL),
-  FUN = sum
-)
+library(dplyr)
+
+track_lengths = 
+  tracks_int %>% 
+  st_set_geometry(NULL) %>% 
+  group_by(state) %>% 
+  summarize(length = sum(length)) %>% 
+  as.data.frame
 
 ## ------------------------------------------------------------------------
 head(track_lengths)
@@ -181,7 +173,7 @@ states = merge(
   track_lengths, 
   by = "state", 
   all.x = TRUE
-  )
+)
 
 ## ------------------------------------------------------------------------
 head(states)
